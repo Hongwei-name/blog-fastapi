@@ -17,6 +17,7 @@ depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
+    """将数据库升级到本版本：创建文章表及标题索引。"""
     op.create_table(
         "posts",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -34,9 +35,11 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id", name=op.f("pk_posts")),
     )
+    # 索引可加快按标题过滤或排序的查询；unique=False 表示标题允许重复。
     op.create_index(op.f("ix_posts_title"), "posts", ["title"], unique=False)
 
 
 def downgrade() -> None:
+    """回滚本版本；先删除依赖表的索引，再删除表本身。"""
     op.drop_index(op.f("ix_posts_title"), table_name="posts")
     op.drop_table("posts")
